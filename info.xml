@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<extension key="uk.co.vedaconsulting.module.dotmailer" type="module">
+  <file>dotmailer</file>
+  <name>Dotmailer</name>
+  <description>CiviCRM and Dotmailer Integration.</description>
+  <license>AGPL-3.0</license>
+  <maintainer>
+    <author>FIXME</author>
+    <email>FIXME</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">http://FIXME</url>
+    <url desc="Documentation">http://FIXME</url>
+    <url desc="Support">http://FIXME</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/agpl-3.0.html</url>
+  </urls>
+  <releaseDate>2015-08-21</releaseDate>
+  <version>1.0</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.5</ver>
+  </compatibility>
+  <comments>Developed by Veda NFP Consulting LTD.</comments>
+  <civix>
+    <namespace>CRM/Dotmailer</namespace>
+  </civix>
+</extension>

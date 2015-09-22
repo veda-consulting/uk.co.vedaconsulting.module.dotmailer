@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/dotmailer/settings</path>
+    <page_callback>CRM_Dotmailer_Form_Setting</page_callback>
+    <title>Dotmailer Setting</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
+</menu>
