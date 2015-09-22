@@ -45,8 +45,13 @@ class CRM_Dotmailer_Utils {
       return;
     }
 
-	  // Get Dotmailer subscription settings for the campaign
-	  $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
+    // Get Dotmailer subscription settings for the ACTIVITY TYPE
+    $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForActivityType($activityDetails['activity_type_id']);
+    if (empty($dmSubscriptionSettings)) {
+      // Get Dotmailer subscription settings for the campaign
+      $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
+    }
+    
     if (empty($dmSubscriptionSettings->dotmailer_address_book_id) && empty($dmSubscriptionSettings->dotmailer_campaign_id)) {
 	    return;
 	  }
