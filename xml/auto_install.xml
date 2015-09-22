@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
+
+<CustomData>
+  <CustomGroups>
+    <CustomGroup>
+      <name>Dotmailer_Subscription</name>
+      <title>Dotmailer Subscription</title>
+      <extends>Activity</extends>
+      <style>Inline</style>
+      <collapse_display>0</collapse_display>
+      <help_pre></help_pre>
+      <help_post></help_post>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <table_name>civicrm_value_dotmailer_subscription</table_name>
+      <is_multiple>0</is_multiple>
+      <collapse_adv_display>0</collapse_adv_display>
+      <created_date>0000-00-00 00:00:00</created_date>
+      <is_reserved>0</is_reserved>
+    </CustomGroup>
+    <CustomGroup>
+      <name>Dotmailer_Subscription_Settings</name>
+      <title>Dotmailer Subscription Settings</title>
+      <extends>Campaign</extends>
+      <style>Inline</style>
+      <collapse_display>0</collapse_display>
+      <help_pre></help_pre>
+      <help_post></help_post>
+      <weight>2</weight>
+      <is_active>1</is_active>
+      <table_name>civicrm_value_dotmailer_subscription_settings</table_name>
+      <is_multiple>0</is_multiple>
+      <collapse_adv_display>0</collapse_adv_display>
+      <created_date>0000-00-00 00:00:00</created_date>
+      <is_reserved>0</is_reserved>
+    </CustomGroup>    
+  </CustomGroups>
+  <CustomFields>
+    <CustomField>
+      <name>Dotmailer_Address_Book</name>
+      <label>Dotmailer Address Book</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>0</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>1</is_view>
+      <text_length>255</text_length>
+      <note_columns>150</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>dotmailer_address_book</column_name>
+      <custom_group_name>Dotmailer_Subscription</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>Dotmailer_Campaigmn</name>
+      <label>Dotmailer Campaign</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>0</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>2</weight>
+      <is_active>1</is_active>
+      <is_view>1</is_view>
+      <text_length>255</text_length>
+      <note_columns>150</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>dotmailer_campaign</column_name>
+      <custom_group_name>Dotmailer_Subscription</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>Dotmailer_Address_Book</name>
+      <label>Dotmailer Address Book</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>0</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>1</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>150</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>dotmailer_address_book_id</column_name>
+      <custom_group_name>Dotmailer_Subscription_Settings</custom_group_name>
+    </CustomField>
+    <CustomField>
+      <name>Dotmailer_Campaign</name>
+      <label>Dotmailer Campaign</label>
+      <data_type>String</data_type>
+      <html_type>Text</html_type>
+      <is_required>0</is_required>
+      <is_searchable>0</is_searchable>
+      <is_search_range>0</is_search_range>
+      <weight>2</weight>
+      <is_active>1</is_active>
+      <is_view>0</is_view>
+      <text_length>255</text_length>
+      <note_columns>150</note_columns>
+      <note_rows>4</note_rows>
+      <column_name>dotmailer_campaign_id</column_name>
+      <custom_group_name>Dotmailer_Subscription_Settings</custom_group_name>
+    </CustomField>
+  </CustomFields>
+  <OptionGroups>
+    <OptionGroup>
+      <name>activity_type</name>
+      <title>Activity Type</title>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+    </OptionGroup>
+  </OptionGroups>
+  <OptionValues>
+    <OptionValue>
+      <label>Contribution Created</label>
+      <name>Contribution Created</name>
+      <description>Online or offline contribution created</description>
+      <filter>0</filter>
+      <is_default>0</is_default>
+      <weight>1</weight>
+      <is_optgroup>0</is_optgroup>
+      <is_reserved>1</is_reserved>
+      <is_active>1</is_active>
+      <option_group_name>activity_type</option_group_name>
+    </OptionValue>
+  </OptionValues>  
+</CustomData>
