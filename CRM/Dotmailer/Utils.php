@@ -31,9 +31,9 @@ class CRM_Dotmailer_Utils {
     ));
 
     // Return, if activity is not linked with any campaign
-    if (empty($activityDetails['campaign_id'])) {
-      return;
-    }
+    // if (empty($activityDetails['campaign_id'])) {
+    //   return;
+    // }
 
     // Check if we need to process this activity type
     $activityTypesToProcess = array();
@@ -45,8 +45,13 @@ class CRM_Dotmailer_Utils {
       return;
     }
 
-	  // Get Dotmailer subscription settings for the campaign
-	  $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
+    // Get Dotmailer subscription settings for the ACTIVITY TYPE
+    $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForActivityType($activityDetails['activity_type_id']);
+    if (empty($dmSubscriptionSettings)) {
+      // Get Dotmailer subscription settings for the campaign
+      $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
+    }
+    
     if (empty($dmSubscriptionSettings->dotmailer_address_book_id) && empty($dmSubscriptionSettings->dotmailer_campaign_id)) {
 	    return;
 	  }
@@ -127,7 +132,7 @@ class CRM_Dotmailer_Utils {
     	);
 
       // Populate data fields for Dotmailer with CiviCRM field values
-      CRM_Dotmailer_Utils::populateDotmailerDataFields($fields, $activityId);
+      // CRM_Dotmailer_Utils::populateDotmailerDataFields($fields, $activityId);
 
       try {
 				// Add the contact to address book using API
