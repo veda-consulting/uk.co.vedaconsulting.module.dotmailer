@@ -199,7 +199,13 @@ function dotmailer_civicrm_buildForm($formName, &$form) {
     }
 
     // Set defaults
-    $activityTypeId = $form->getVar('_id');
+    $opValueId      = $form->getVar('_id');
+    $activityTypeId = $form->_defaultValues['value'];
+    
+    if ( empty($activityTypeId) && !empty($opValueId)) {
+      $activityTypeId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', $opValueId, 'value', 'id');
+    }
+
     if (!empty($activityTypeId)) {
       $defaults = array();
       $dmSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForActivityType($activityTypeId);  
