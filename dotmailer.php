@@ -52,6 +52,7 @@ $GLOBALS["DotMailerCiviCRMDataFieldsMapping"] = array(
     );
 
 define ('DOTMAILER_CONTRIBUTION_ACTIVITY_TYPE_NAME' , 'Contribution Created');
+define ('DOTMAILER_SETTINGS_TABLE_NAME' , 'veda_civicrm_dotmailer_subscription_settings');
 
 /**
  * Implementation of hook_civicrm_config
@@ -81,6 +82,19 @@ function dotmailer_civicrm_xmlMenu(&$files) {
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_install
  */
 function dotmailer_civicrm_install() {
+
+  // Create a sync job
+  $params = array(
+    'sequential' => 1,
+    'name'          => 'Send to Dotmailer',
+    'description'   => 'Add contacts to Dotmailer address book.',
+    'run_frequency' => 'Daily',
+    'api_entity'    => 'Dotmailer',
+    'api_action'    => 'sync',
+    'is_active'     => 0,
+  );
+  $result = civicrm_api3('job', 'create', $params);
+
   _dotmailer_civix_civicrm_install();
 }
 
@@ -186,87 +200,6 @@ function dotmailer_civicrm_navigationMenu(&$params){
 }
 
 /**
- * Implementation of hook_civicrm_buildForm
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_buildForm
- */
-function dotmailer_civicrm_buildForm($formName, &$form) {
-
-  if ($formName == 'CRM_Admin_Form_Options') {
-    $gName = $form->getVar('_gName');
-    if ($gName != 'activity_type') {
-      return;
-    }
-
-    // Set defaults
-    $opValueId      = $form->getVar('_id');
-    $activityTypeId = $form->_defaultValues['value'];
-    
-    if ( empty($activityTypeId) && !empty($opValueId)) {
-      $activityTypeId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', $opValueId, 'value', 'id');
-    }
-
-    if (!empty($activityTypeId)) {
-      $defaults = array();
-      $dmSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForActivityType($activityTypeId);  
-      $defaults['dotmailer_address_book'] = $dmSettings->dotmailer_address_book_id;
-      $defaults['dotmailer_campaign'] = $dmSettings->dotmailer_campaign_id;
-
-      $form->setDefaults($defaults);
-    }
-
-    // Add dotmailer fields to form
-    _dotmailer_civicrm_buildForm_add_dotmailer_fields_to_form($form);
-  }
-
-  if ($formName == 'CRM_Campaign_Form_Campaign') {
-
-    // jQuery Dialog dont have action value set for ADD
-    $action = $form->getAction();
-    if (empty($action)) {
-      $action = 1;
-    }
-    if ($action == CRM_Core_Action::ADD OR $action == CRM_Core_Action::UPDATE) {
-      // Display the list of Dotmailer Address Books only when custom field is loaded
-      if (empty($form->_groupTree)) {
-        return;
-      }
-
-      // Add dotmailer fields to form
-      _dotmailer_civicrm_buildForm_add_dotmailer_fields_to_form($form);
-    }
-  }
-}
-
-/*
- * Function to add Dotmailed fields to form
- */
-function _dotmailer_civicrm_buildForm_add_dotmailer_fields_to_form(&$form) {
-  $dmAddressBooks = $dmCampaigns = array();
-  $params = array(
-    'version' => 3,
-    'sequential' => 1,
-  );
-
-  // Get list of Dotmailer Address Books 
-  $dmAddressBooks = civicrm_api('Dotmailer', 'getaddressbooks', $params);
-  // Add form elements
-  if(!$dmAddressBooks['is_error']){
-    $form->add('select', 'dotmailer_address_book', ts('Dotmailer Address Book'), array('' => '- select -') + $dmAddressBooks['values'], FALSE );
-  }
-
-  // Get list of Campaigns
-  $dmCampaigns = civicrm_api('Dotmailer', 'getcampaigns', $params);
-  // Add form elements
-  if(!$dmCampaigns['is_error']){
-    $form->add('select', 'dotmailer_campaign', ts('Dotmailer Campaign'), array('' => '- select -') + $dmCampaigns['values'], FALSE );
-  }
-
-  $form->assign('displayDotmailerDetails', 1);
-}
-
-
-/**
  * Implementation of hook_civicrm_post
  *
  * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_buildForm
@@ -284,62 +217,4 @@ function dotmailer_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
   if ($op == 'create' && $objectName == 'Contribution' && !empty($objectRef->campaign_id) && $objectRef->campaign_id != 'null') {
     CRM_Dotmailer_Utils::createActivityForContribution($objectRef);
   }
-}
-
-/**
- * Implementation of hook_civicrm_postProcess
- *
- * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_postProcess
- */
-function dotmailer_civicrm_postProcess( $formName, &$form ) {
-  // HACK: Check if activity exists for contribition during Online contribution in postProcess
-  // as hook_civicrm_post does not call Activity -> Create
-  // also hook_civicrm_post (Contribition -> Create) cant be used 
-  // as activity will not be created at that point
-  /*if ($formName = 'CRM_Contribute_Form_Contribution_Confirm' AND !empty($form->_contributionID)) {
-    $activityDetails = CRM_Dotmailer_Utils::getActivityDetailsForContribution($form->_contributionID);
-    if (!empty($activityDetails->campaign_id)) {
-      CRM_Dotmailer_Utils::processDotmailerSubscription($activityDetails->id, $activityDetails->campaign_id, $form->_contactID);
-    }
-  }*/
-
-  if ($formName == 'CRM_Admin_Form_Options') {
-    $gName = $form->getVar('_gName');
-    if ($gName != 'activity_type') {
-      return;
-    }
-
-    $opValueId      = $form->getVar('_id');
-    $activityTypeId = $form->_defaultValues['value'];
-    
-    if ( empty($activityTypeId) && !empty($opValueId)) {
-      $activityTypeId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_OptionValue', $opValueId, 'value', 'id');
-    }
-    
-    if (empty($activityTypeId)) {
-      return;
-    }
-
-    $addressBookId = 'NULL';
-    $campaignId = 'NULL';
-
-    if (!empty($form->_submitValues['dotmailer_address_book'])) {
-      $addressBookId = $form->_submitValues['dotmailer_address_book'];
-    }
-
-    if (!empty($form->_submitValues['dotmailer_campaign'])) {
-      $campaignId = $form->_submitValues['dotmailer_campaign'];
-    }
-
-    $sql = "REPLACE INTO veda_civicrm_activity_type_dotmailer_subscription_settings
-           SET activity_type_id = %1,
-           dotmailer_address_book_id = %2,
-           dotmailer_campaign_id = %3";
-    $params = array(
-      '1' => array($activityTypeId, 'Integer'),
-      '2' => array($addressBookId, 'String'),
-      '3' => array($campaignId, 'String'),
-    );
-    $dao = CRM_Core_DAO::executeQuery($sql, $params);
-  }  
 }

@@ -31,26 +31,26 @@ class CRM_Dotmailer_Utils {
     ));
 
     // Return, if activity is not linked with any campaign
-    // if (empty($activityDetails['campaign_id'])) {
-    //   return;
-    // }
+    if (empty($activityDetails['activity_type_id']) || empty($activityDetails['campaign_id'])) {
+       return;
+    }
 
     // Check if we need to process this activity type
-    $activityTypesToProcess = array();
+    /*$activityTypesToProcess = array();
     $activityTypes = CRM_Core_BAO_Setting::getItem(CRM_Dotmailer_Form_Setting::DOTMAILER_SETTING_GROUP,
       'activity_types', NULL, FALSE
     );
     $activityTypesToProcess = @unserialize($activityTypes);
     if (!in_array($activityDetails['activity_type_id'], $activityTypesToProcess)) {
       return;
-    }
+    }*/
 
-    // Get Dotmailer subscription settings for the ACTIVITY TYPE
-    $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForActivityType($activityDetails['activity_type_id']);
-    if (empty($dmSubscriptionSettings)) {
+    // Get Dotmailer subscription settings for the ACTIVITY TYPE & Campaign
+    $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerMappingDetailSingle($activityDetails['activity_type_id'], $activityDetails['campaign_id']);
+    //if (empty($dmSubscriptionSettings)) {
       // Get Dotmailer subscription settings for the campaign
-      $dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
-    }
+      //$dmSubscriptionSettings = CRM_Dotmailer_Utils::getDotmailerDetailsForCampaign($activityDetails['campaign_id']);
+    //}
     
     if (empty($dmSubscriptionSettings->dotmailer_address_book_id) && empty($dmSubscriptionSettings->dotmailer_campaign_id)) {
 	    return;
@@ -223,6 +223,64 @@ class CRM_Dotmailer_Utils {
   }
 
   /*
+   * Function to get dotmailer mapping for activity type and campaign
+   */
+  static function getDotmailerMappingDetails($id = NULL) {
+    $whereClauses = $params = $result = array();
+    $whereClauses[] = ' (1) ';
+    $whereClause = '';
+
+    if (!empty($id)) {
+      $whereClauses[] = "id = %1";
+      $params[1] = array($id , 'String');
+    }
+
+    if (!empty($whereClauses)) {
+      $whereClause = @implode(' AND ', $whereClauses);
+    }
+
+    $activityTypes = CRM_Dotmailer_Utils::getActivityTypes();
+    $allActiveCampaigns = CRM_Campaign_BAO_Campaign::getCampaigns(NULL, NULL, TRUE, FALSE);
+    $dmAddressBooks = civicrm_api('Dotmailer', 'getaddressbooks', array('version' => 3));
+    $dmCampaigns = civicrm_api('Dotmailer', 'getcampaigns', array('version' => 3));
+
+    $query  = "SELECT * FROM ".DOTMAILER_SETTINGS_TABLE_NAME." WHERE {$whereClause}";
+    $dao = CRM_Core_DAO::executeQuery($query, $params);
+    while($dao->fetch()) {
+      $result[$dao->id] = $dao->toArray();
+      $result[$dao->id]['activity_type_label'] = $activityTypes[$dao->activity_type_id];
+      $result[$dao->id]['campaign_label'] = $allActiveCampaigns[$dao->campaign_id];
+      $result[$dao->id]['dotmailer_address_book_label'] = $dmAddressBooks['values'][$dao->dotmailer_address_book_id];
+      if (!empty($dao->dotmailer_campaign_id) && $dao->dotmailer_campaign_id != 'NULL') {
+        $result[$dao->id]['dotmailer_campaign_label'] = $dmCampaigns['values'][$dao->dotmailer_campaign_id];
+      }
+    }
+
+    return $result;
+  }
+
+  /*
+   * Function to get dotmailer mapping for activity type and campaign
+   */
+  static function getDotmailerMappingDetailSingle($activityTypeId, $campaignId) {
+
+    if (empty($activityTypeId) || empty($campaignId)) {
+      return;
+    }
+
+    $query  = "SELECT * FROM ".DOTMAILER_SETTINGS_TABLE_NAME." WHERE activity_type_id = %1 AND campaign_id = %2";
+    $params[1] = array($activityTypeId , 'String');
+    $params[2] = array($campaignId , 'String');
+    $dao = CRM_Core_DAO::executeQuery($query, $params);
+    if($dao->fetch()) {
+      return $dao;
+    }
+
+    return NULL;
+  }
+
+
+  /*
    * Function to get dotmailer subscription details for CiviCRM Campaign
    */
   static function getDotmailerDetailsForCampaign($campaignId) {
@@ -316,6 +374,9 @@ class CRM_Dotmailer_Utils {
   	}
   }
 
+  /*
+   * Function to create custom activity for contribution creation
+   */
   static function createActivityForContribution($contributionObj) {
     if (empty($contributionObj)) {
       return;
@@ -341,6 +402,9 @@ class CRM_Dotmailer_Utils {
     $result = civicrm_api3('Activity', 'create', $params);
   }
 
+  /*
+   * Function to get activity type for contribution created activity
+   */
   static function getActivityTypeForContributionCreation() {
     // Get activity type id
     $ogResult = civicrm_api3('OptionGroup', 'getsingle', array(
@@ -352,6 +416,58 @@ class CRM_Dotmailer_Utils {
     ));
     
     return array('value' => $ovResult['value'], 'description' => $ovResult['description']);
+  }
+
+
+  /*
+   * Function to get activity types list
+   * TODO: Use core function instead of this function
+   */
+  static function getActivityTypes() {
+    $ogResult = civicrm_api3('OptionGroup', 'getsingle', array(
+      'name' => "activity_type",
+    ));
+    $ovResult = civicrm_api3('OptionValue', 'get', array(
+      'option_group_id' => $ogResult['id'],
+      'rowCount' => 0,
+    ));
+
+    $activityTypes = array();
+    foreach($ovResult['values'] as $key => $value) {
+      $activityTypes[$value['value']] = $value['label'];
+    }
+
+    return $activityTypes;
+  }
+
+  /*
+   * Function to process Dotmailer push for unprocessed activities
+   */
+  static function processSync($params) {
+    $limit = CRM_Utils_Array::value( 'limit', $params, 50);
+
+    $dmMappings = CRM_Dotmailer_Utils::getDotmailerMappingDetails();
+    if (empty($dmMappings)) {
+      return;
+    }
+
+    $activityTypes = $campaigns = array();
+    foreach($dmMappings as $key => $value) {
+      $activityTypes[] = $value['activity_type_id'];
+      $campaigns[] = $value['campaign_id'];
+    }
+
+    $activityTypeStr = implode(', ', $activityTypes);
+    $campaignsStr = implode(', ', $campaigns);
+
+    $query = "SELECT id from civicrm_activity 
+        WHERE id NOT IN (SELECT entity_id FROM civicrm_value_dotmailer_subscription)
+        AND activity_type_id IN ({$activityTypeStr}) AND campaign_id IN ({$campaignsStr})
+        LIMIT {$limit}";
+    $dao = CRM_Core_DAO::executeQuery($query);
+    while ($dao->fetch()) {
+      self::processDotmailerSubscription($dao->id);
+    }
   }
 
 }

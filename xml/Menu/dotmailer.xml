@@ -6,4 +6,10 @@
     <title>Dotmailer Setting</title>
     <access_arguments>administer CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/dotmailer/settings/dmmapping</path>
+    <page_callback>CRM_Dotmailer_Form_DmMapping</page_callback>
+    <title>Dotmailer Mapping</title>
+    <access_arguments>administer CiviCRM</access_arguments>
+  </item>
 </menu>

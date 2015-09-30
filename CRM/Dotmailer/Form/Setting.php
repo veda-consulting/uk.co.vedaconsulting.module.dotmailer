@@ -33,12 +33,12 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
       'api_notes', NULL, FALSE
     );
 
-    $activityTypes = CRM_Core_BAO_Setting::getItem(self::DOTMAILER_SETTING_GROUP,
+    /*$activityTypes = CRM_Core_BAO_Setting::getItem(self::DOTMAILER_SETTING_GROUP,
       'activity_types', NULL, FALSE
     );
     if (!empty($activityTypes)) {
       $defaults['activity_types'] = unserialize($activityTypes);
-    }
+    }*/
     
     return $defaults;
   }
@@ -55,14 +55,14 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
     $this->add('select', 'api_email_type', ts('Email Type'), array('' => '- select -') + $GLOBALS["DotMailerEmailType"], FALSE );
     $this->add('textarea', 'api_notes', ts('Notes'), array("rows" => 4, "cols" => 60));
 
-    $apiActivityTypes = &$this->addElement('advmultiselect', 'activity_types',
-      ts('Activity Types') . ' ', $this->getActivityTypes(),
+    /*$apiActivityTypes = &$this->addElement('advmultiselect', 'activity_types',
+      ts('Activity Types') . ' ', CRM_Dotmailer_Utils::getActivityTypes(),
       array(
         'size' => 5,
         'style' => 'width:200px',
         'class' => 'advmultiselect',
       )
-    );
+    );*/
 
     $this->addButtons(array(
       array(
@@ -76,12 +76,9 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
       $this->assign('dmCiviCRMFieldMapping',$GLOBALS["DotMailerCiviCRMDataFieldsMapping"]);
     }    
 
-    // Get dotmailer custom fields
-    /*$params = array(
-      'version' => 3,
-      'sequential' => 1,
-    );
-    $dmDataFields = civicrm_api('Dotmailer', 'getdatafields', $params);*/
+    // Get activity type/campaign and DM mapping
+    $dmMappings = CRM_Dotmailer_Utils::getDotmailerMappingDetails();
+    $this->assign('dmMappings', $dmMappings);
 
     // export form elements
     $this->assign('elementNames', $this->getRenderableElementNames());
@@ -124,11 +121,11 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
       'api_notes'
     );
 
-    $activityTypeStr = @serialize($params['activity_types']);
+    /*$activityTypeStr = @serialize($params['activity_types']);
     CRM_Core_BAO_Setting::setItem($activityTypeStr,
       self::DOTMAILER_SETTING_GROUP,
       'activity_types'
-    );
+    );*/
        
     $message = ts('Settings saved.');
     CRM_Core_Session::setStatus($message, 'Dotmailer', 'success');
@@ -155,20 +152,4 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
     return $elementNames;
   }
 
-  function getActivityTypes() {
-    $ogResult = civicrm_api3('OptionGroup', 'getsingle', array(
-      'name' => "activity_type",
-    ));
-    $ovResult = civicrm_api3('OptionValue', 'get', array(
-      'option_group_id' => $ogResult['id'],
-      'rowCount' => 0,
-    ));
-
-    $activityTypes = array();
-    foreach($ovResult['values'] as $key => $value) {
-      $activityTypes[$value['value']] = $value['label'];
-    }
-
-    return $activityTypes;
-  }
 }
