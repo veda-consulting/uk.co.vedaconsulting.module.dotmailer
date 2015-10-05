@@ -67,7 +67,7 @@ class CRM_Dotmailer_Form_DmMapping extends CRM_Core_Form {
 
     // Active campaigns
     $allActiveCampaigns = CRM_Campaign_BAO_Campaign::getCampaigns(NULL, NULL, TRUE, FALSE);
-    $this->add('select', 'campaign_id', ts('CiviCRM Campaign'), array('' => '- select -') + $allActiveCampaigns, TRUE );
+    $this->add('select', 'campaign_id', ts('CiviCRM Campaign'), array('' => '- select -') + $allActiveCampaigns, FALSE );
 
     // Get list of Dotmailer Address Books 
     $dmAddressBooks = civicrm_api('Dotmailer', 'getaddressbooks', array('version' => 3));
@@ -106,25 +106,30 @@ class CRM_Dotmailer_Form_DmMapping extends CRM_Core_Form {
    */
   static function formRule($values) {
     $errors = array( );
+    $civiCampaign = 'NULL';
+    if (!empty($values['campaign_id'])) {
+      $civiCampaign = $values['campaign_id'];
+    }
+
     if ($values['action'] == 'add') {
       $sql = "SELECT * FROM ".DOTMAILER_SETTINGS_TABLE_NAME." WHERE activity_type_id = %1 AND campaign_id = %2";
       $dao = CRM_Core_DAO::executeQuery($sql , array( 
                                               1 => array( $values['activity_type_id'], 'Integer' ),
-                                              2 => array( $values['campaign_id'], 'Integer' ),
+                                              2 => array( $civiCampaign, 'String' ),
                                           ));
       if ($dao->fetch()) {
-        $errors['activity_type_id'] = ts("Dotmailer mapping already added for activity type and campaign.");
+        $errors['activity_type_id'] = ts("Dotmailer mapping already added for activity type/campaign.");
       }
     }                   
     if ($values['action'] == 'update') {
       $sql = "SELECT * FROM ".DOTMAILER_SETTINGS_TABLE_NAME." WHERE activity_type_id = %1 AND campaign_id = %2 AND id != %3";
       $dao = CRM_Core_DAO::executeQuery($sql , array( 
                                                 1 => array( $values['activity_type_id'], 'Integer' ),
-                                                2 => array( $values['campaign_id'], 'Integer' ),
+                                                2 => array( $civiCampaign, 'String' ),
                                                 3 => array( $values['id'], 'Integer' ),
                                             ));
       if ($dao->fetch()) {
-        $errors['activity_type_id'] = ts("Dotmailer mapping already added for activity type and campaign");
+        $errors['activity_type_id'] = ts("Dotmailer mapping already added for activity type/campaign");
       }
     }                                     
     return $errors;
@@ -133,13 +138,17 @@ class CRM_Dotmailer_Form_DmMapping extends CRM_Core_Form {
   function postProcess() {
     $params = $this->exportValues();
 
-    $dmCampaign = 'NULL';
+    $dmCampaign = $civiCampaign = 'NULL';
     if (!empty($params['dotmailer_campaign_id'])) {
       $dmCampaign = $params['dotmailer_campaign_id'];
     }
 
+    if (!empty($params['campaign_id'])) {
+      $civiCampaign = $params['campaign_id'];
+    }
+
     $sqlParams[1] = array($params['activity_type_id'], 'String');
-    $sqlParams[2] = array($params['campaign_id'], 'String');
+    $sqlParams[2] = array($civiCampaign, 'String');
     $sqlParams[3] = array($params['dotmailer_address_book_id'], 'String');
     $sqlParams[4] = array($dmCampaign, 'String');
 
