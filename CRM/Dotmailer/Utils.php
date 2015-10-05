@@ -31,8 +31,12 @@ class CRM_Dotmailer_Utils {
     ));
 
     // Return, if activity is not linked with any campaign
-    if (empty($activityDetails['activity_type_id']) || empty($activityDetails['campaign_id'])) {
+    if (empty($activityDetails['activity_type_id'])) {
        return;
+    }
+
+    if (!isset($activityDetails['campaign_id'])) {
+      $activityDetails['campaign_id'] = 'NULL';
     }
 
     // Check if we need to process this activity type
@@ -249,7 +253,9 @@ class CRM_Dotmailer_Utils {
     while($dao->fetch()) {
       $result[$dao->id] = $dao->toArray();
       $result[$dao->id]['activity_type_label'] = $activityTypes[$dao->activity_type_id];
-      $result[$dao->id]['campaign_label'] = $allActiveCampaigns[$dao->campaign_id];
+      if (!empty($dao->campaign_id) && $dao->campaign_id != 'NULL') {
+        $result[$dao->id]['campaign_label'] = $allActiveCampaigns[$dao->campaign_id];
+      }
       $result[$dao->id]['dotmailer_address_book_label'] = $dmAddressBooks['values'][$dao->dotmailer_address_book_id];
       if (!empty($dao->dotmailer_campaign_id) && $dao->dotmailer_campaign_id != 'NULL') {
         $result[$dao->id]['dotmailer_campaign_label'] = $dmCampaigns['values'][$dao->dotmailer_campaign_id];
