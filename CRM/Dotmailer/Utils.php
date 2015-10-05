@@ -457,18 +457,16 @@ class CRM_Dotmailer_Utils {
       return;
     }
 
-    $activityTypes = $campaigns = array();
+    $activityTypes = array();
     foreach($dmMappings as $key => $value) {
       $activityTypes[] = $value['activity_type_id'];
-      $campaigns[] = $value['campaign_id'];
     }
 
     $activityTypeStr = implode(', ', $activityTypes);
-    $campaignsStr = implode(', ', $campaigns);
 
     $query = "SELECT id from civicrm_activity 
         WHERE id NOT IN (SELECT entity_id FROM civicrm_value_dotmailer_subscription)
-        AND activity_type_id IN ({$activityTypeStr}) AND campaign_id IN ({$campaignsStr})
+        AND activity_type_id IN ({$activityTypeStr})
         LIMIT {$limit}";
     $dao = CRM_Core_DAO::executeQuery($query);
     while ($dao->fetch()) {
