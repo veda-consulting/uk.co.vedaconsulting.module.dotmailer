@@ -67,7 +67,7 @@
     <OptionValue>
       <label>Contribution Created</label>
       <name>Contribution Created</name>
-      <description>Online or offline recurring contribution created</description>
+      <description>Online or offline contribution created</description>
       <filter>0</filter>
       <is_default>0</is_default>
       <weight>1</weight>
