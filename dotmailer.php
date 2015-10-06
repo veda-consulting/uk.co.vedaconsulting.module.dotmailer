@@ -42,6 +42,7 @@ $GLOBALS["DotMailerEmailType"] = array(
  *    custom_1
  *    custom_2 
  */
+define ('DOTMAILER_PROCESS_CUSTOM_DATA_FIELDS', 1); // 1 (Yes) or 0 (No)
 $GLOBALS["DotMailerCiviCRMDataFieldsMapping"] = array(
     'contact' => array(
         'custom_27' => 'FIRSTDONATIONDATE',
@@ -52,6 +53,7 @@ $GLOBALS["DotMailerCiviCRMDataFieldsMapping"] = array(
     );
 
 define ('DOTMAILER_CONTRIBUTION_ACTIVITY_TYPE_NAME' , 'Contribution Created');
+define ('DOTMAILER_RECURRING_CONTRIBUTION_ACTIVITY_TYPE_NAME' , 'Recurring Contribution Created');
 define ('DOTMAILER_SETTINGS_TABLE_NAME' , 'veda_civicrm_dotmailer_subscription_settings');
 
 /**
@@ -61,8 +63,6 @@ define ('DOTMAILER_SETTINGS_TABLE_NAME' , 'veda_civicrm_dotmailer_subscription_s
  */
 function dotmailer_civicrm_config(&$config) {
   _dotmailer_civix_civicrm_config($config);
-
-  $value = CRM_Dotmailer_Utils::getActivityTypeForContributionCreation();
 }
 
 /**
@@ -214,7 +214,8 @@ function dotmailer_civicrm_post( $op, $objectName, $objectId, &$objectRef ) {
 
   // Create bespoke activity when a contribution is created
   // so that we can process dotmailer subscription from activity
-  if ($op == 'create' && $objectName == 'Contribution' && !empty($objectRef->campaign_id) && $objectRef->campaign_id != 'null') {
+  //if ($op == 'create' && $objectName == 'Contribution' && !empty($objectRef->campaign_id) && $objectRef->campaign_id != 'null') {
+  if ($op == 'create' && $objectName == 'Contribution') {
     CRM_Dotmailer_Utils::createActivityForContribution($objectRef);
   }
 }

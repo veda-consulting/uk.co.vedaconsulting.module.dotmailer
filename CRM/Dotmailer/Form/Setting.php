@@ -72,7 +72,7 @@ class CRM_Dotmailer_Form_Setting extends CRM_Core_Form {
       ),
     ));
 
-    if (!empty($GLOBALS["DotMailerCiviCRMDataFieldsMapping"])) {
+    if (!empty($GLOBALS["DotMailerCiviCRMDataFieldsMapping"]) && DOTMAILER_PROCESS_CUSTOM_DATA_FIELDS == 1) {
       $this->assign('dmCiviCRMFieldMapping',$GLOBALS["DotMailerCiviCRMDataFieldsMapping"]);
     }    
 
