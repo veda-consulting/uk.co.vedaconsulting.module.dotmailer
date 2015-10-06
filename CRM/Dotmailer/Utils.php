@@ -136,7 +136,10 @@ class CRM_Dotmailer_Utils {
     	);
 
       // Populate data fields for Dotmailer with CiviCRM field values
-      // CRM_Dotmailer_Utils::populateDotmailerDataFields($fields, $activityId);
+      // if process custom field flag is set to yes
+      if (DOTMAILER_PROCESS_CUSTOM_DATA_FIELDS == 1) {
+        CRM_Dotmailer_Utils::populateDotmailerDataFields($fields, $activityId);
+      }
 
       try {
 				// Add the contact to address book using API
@@ -155,7 +158,7 @@ class CRM_Dotmailer_Utils {
     }
 
     // Send campaign to contact, if set
-    if (!empty($dmSubscriptionSettings->dotmailer_campaign_id)) {
+    if (!empty($dmSubscriptionSettings->dotmailer_campaign_id) && $dmSubscriptionSettings->dotmailer_campaign_id != 'NULL') {
 
     	// Get the contact in Dotmailer
     	$foundContact = $dotmailer->GetContactByEmail($contactDetails['email']);
@@ -389,7 +392,7 @@ class CRM_Dotmailer_Utils {
     }
 
     // Get activity type id
-    $activityTypeDetails = self::getActivityTypeForContributionCreation();
+    $activityTypeDetails = self::getActivityTypeForContributionCreation($contributionObj);
 
     // Create activity
     $params = array(
@@ -411,14 +414,21 @@ class CRM_Dotmailer_Utils {
   /*
    * Function to get activity type for contribution created activity
    */
-  static function getActivityTypeForContributionCreation() {
+  static function getActivityTypeForContributionCreation($contributionObj) {
+
+    if (!empty($contributionObj->contribution_recur_id)) {
+      $activityName = DOTMAILER_RECURRING_CONTRIBUTION_ACTIVITY_TYPE_NAME;
+    } else {
+      $activityName = DOTMAILER_CONTRIBUTION_ACTIVITY_TYPE_NAME;
+    }
+
     // Get activity type id
     $ogResult = civicrm_api3('OptionGroup', 'getsingle', array(
       'name' => "activity_type",
     ));
     $ovResult = civicrm_api3('OptionValue', 'getsingle', array(
       'option_group_id' => $ogResult['id'],
-      'name' => DOTMAILER_CONTRIBUTION_ACTIVITY_TYPE_NAME,
+      'name' => $activityName,
     ));
     
     return array('value' => $ovResult['value'], 'description' => $ovResult['description']);
