@@ -55,6 +55,7 @@ $GLOBALS["DotMailerCiviCRMDataFieldsMapping"] = array(
 define ('DOTMAILER_CONTRIBUTION_ACTIVITY_TYPE_NAME' , 'Contribution Created');
 define ('DOTMAILER_RECURRING_CONTRIBUTION_ACTIVITY_TYPE_NAME' , 'Recurring Contribution Created');
 define ('DOTMAILER_SETTINGS_TABLE_NAME' , 'veda_civicrm_dotmailer_subscription_settings');
+define ('DOTMAILER_ACTIVITY_RELATED_CONTRIBUTION_TABLE_NAME' , 'civicrm_value_related_contribution');
 
 /**
  * Implementation of hook_civicrm_config

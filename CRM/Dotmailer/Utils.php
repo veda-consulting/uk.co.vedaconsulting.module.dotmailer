@@ -394,6 +394,11 @@ class CRM_Dotmailer_Utils {
     // Get activity type id
     $activityTypeDetails = self::getActivityTypeForContributionCreation($contributionObj);
 
+    $campaignId = '';
+    if (!empty($contributionObj->campaign_id) && $contributionObj->campaign_id != 'null') {
+      $campaignId = $contributionObj->campaign_id;
+    }
+
     // Create activity
     $params = array(
       'activity_type_id' => $activityTypeDetails['value'],
@@ -406,9 +411,19 @@ class CRM_Dotmailer_Utils {
       'is_deleted' => '0',
       'source_contact_id' => $contributionObj->contact_id,
       'target_contact_id' => $contributionObj->contact_id,
-      'campaign_id' => $contributionObj->campaign_id,
+      'campaign_id' => $campaignId,
     );
     $result = civicrm_api3('Activity', 'create', $params);
+
+    // Save contribution id in custom data field against activity
+    if (!empty($result['id']) && !$result['is_error']) {
+      $query = "INSERT INTO ".DOTMAILER_ACTIVITY_RELATED_CONTRIBUTION_TABLE_NAME." SET entity_id = %1, related_contribution_id = %2";
+      $params = array(
+            '1' => array($result['id'] , 'Integer'),
+            '2' => array($contributionObj->id , 'Integer'),
+          );
+      $dao = CRM_Core_DAO::executeQuery($query, $params);
+    }
   }
 
   /*

@@ -10,39 +10,58 @@ class CRM_Dotmailer_Upgrader extends CRM_Dotmailer_Upgrader_Base {
 
   /**
    * Example: Run an external SQL script when the module is installed
-   *
+   */
   public function install() {
     $this->executeSqlFile('sql/myinstall.sql');
   }
 
   /**
    * Example: Run an external SQL script when the module is uninstalled
-   *
+   */
   public function uninstall() {
    $this->executeSqlFile('sql/myuninstall.sql');
   }
 
   /**
-   * Example: Run a simple query when a module is enabled
+   * Example: Run a slow upgrade process by breaking it up into smaller chunk
    *
-  public function enable() {
-    CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 1 WHERE bar = "whiz"');
+   * @return TRUE on success
+   * @throws Exception
+   */
+  public function upgrade_11() {
+    $this->ctx->log->info('Applying update v1.1'); // PEAR Log interface
+
+    require_once 'CRM/Utils/Migrate/Import.php';
+    $import = new CRM_Utils_Migrate_Import( );
+
+    // Import custom data (flag to process DM sync) for contribution
+    $file = 'xml' . DIRECTORY_SEPARATOR . 'Upgrade' . DIRECTORY_SEPARATOR . 'v1.1.xml';
+    $xmlFilepath = CRM_Core_Resources::singleton()->getPath('uk.co.vedaconsulting.module.dotmailer', $file);
+    $import->run( $xmlFilepath );
+    return TRUE;
   }
 
   /**
+   * Example: Run a simple query when a module is enabled
+   */
+  /* public function enable() {
+    CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 1 WHERE bar = "whiz"');
+  } */
+
+  /**
    * Example: Run a simple query when a module is disabled
-   *
-  public function disable() {
+   */
+  /* public function disable() {
     CRM_Core_DAO::executeQuery('UPDATE foo SET is_active = 0 WHERE bar = "whiz"');
-  }
+  } */
 
   /**
    * Example: Run a couple simple queries
    *
    * @return TRUE on success
    * @throws Exception
-   *
-  public function upgrade_4200() {
+   */
+  /* public function upgrade_4200() {
     $this->ctx->log->info('Applying update 4200');
     CRM_Core_DAO::executeQuery('UPDATE foo SET bar = "whiz"');
     CRM_Core_DAO::executeQuery('DELETE FROM bang WHERE willy = wonka(2)');
@@ -55,7 +74,8 @@ class CRM_Dotmailer_Upgrader extends CRM_Dotmailer_Upgrader_Base {
    *
    * @return TRUE on success
    * @throws Exception
-  public function upgrade_4201() {
+   */
+  /* public function upgrade_4201() {
     $this->ctx->log->info('Applying update 4201');
     // this path is relative to the extension base dir
     $this->executeSqlFile('sql/upgrade_4201.sql');
@@ -68,7 +88,8 @@ class CRM_Dotmailer_Upgrader extends CRM_Dotmailer_Upgrader_Base {
    *
    * @return TRUE on success
    * @throws Exception
-  public function upgrade_4202() {
+   */
+  /* public function upgrade_4202() {
     $this->ctx->log->info('Planning update 4202'); // PEAR Log interface
 
     $this->addTask(ts('Process first step'), 'processPart1', $arg1, $arg2);
@@ -88,7 +109,8 @@ class CRM_Dotmailer_Upgrader extends CRM_Dotmailer_Upgrader_Base {
    *
    * @return TRUE on success
    * @throws Exception
-  public function upgrade_4203() {
+   */
+  /* public function upgrade_4203() {
     $this->ctx->log->info('Planning update 4203'); // PEAR Log interface
 
     $minId = CRM_Core_DAO::singleValueQuery('SELECT coalesce(min(id),0) FROM civicrm_contribution');
